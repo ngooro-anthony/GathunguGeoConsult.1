@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -55,17 +16,17 @@
             color: #333;
         }
         header {
-            background-color: #4CAF50;
+            background-color: #1976D2;
             color: white;
             padding: 1em;
             text-align: center;
         }
         nav {
-            background-color: #1976D2;
+            background-color: #FBC02D;
             padding: 1em;
         }
         nav a {
-            color: white;
+            color: #333;
             margin: 0 1em;
             text-decoration: none;
             cursor: pointer;
@@ -100,10 +61,10 @@
             background-color: #fff;
         }
         .service-item h3 {
-            color: #D32F2F;
+            color: #4CAF50;
         }
         .price {
-            color: #FBC02D;
+            color: #D32F2F;
         }
         .request-form form {
             display: flex;
@@ -116,17 +77,17 @@
             border: 1px solid #ddd;
         }
         .request-form button {
-            background-color: #1976D2;
-            color: white;
+            background-color: #FBC02D;
+            color: #333;
             padding: 0.5em;
             border: none;
             cursor: pointer;
         }
         .request-form button:hover {
-            background-color: #1565C0;
+            background-color: #e6b000;
         }
         .faq h2, .request-form h2, .services h2, .content h2 {
-            color: #4CAF50;
+            color: #1976D2;
         }
         .survey-img {
             width: 100%;
@@ -162,21 +123,29 @@
             border: 1px solid #ddd;
         }
         #adminSection button, #adminContent button {
-            background-color: #1976D2;
-            color: white;
+            background-color: #FBC02D;
+            color: #333;
             padding: 0.5em;
             border: none;
             cursor: pointer;
         }
         #adminSection button:hover, #adminContent button:hover {
-            background-color: #1565C0;
+            background-color: #e6b000;
         }
         .service-item button, .request-item button {
             background-color: #D32F2F;
-            margin-top: 0.5em;
+            color: white;
+            margin: 0.2em;
+            padding: 0.3em 0.6em;
+        }
+        .service-item .edit-button {
+            background-color: #1976D2;
         }
         .service-item button:hover, .request-item button:hover {
-            background-color: #C62828;
+            background-color: #b71c1c;
+        }
+        .service-item .edit-button:hover {
+            background-color: #1565C0;
         }
         .service-list, .request-list {
             margin: 1em 0;
@@ -185,6 +154,26 @@
             border: 1px solid #ddd;
             padding: 1em;
             margin: 0.5em 0;
+        }
+        footer {
+            background-color: #1976D2;
+            color: white;
+            text-align: center;
+            padding: 1em;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+        .contact-info, .mission-statement {
+            margin: 1em 0;
+            text-align: center;
+        }
+        .contact-info p, .mission-statement p {
+            margin: 0.5em 0;
+        }
+        #editServiceForm {
+            display: none;
+            margin-top: 1em;
         }
     </style>
 </head>
@@ -204,8 +193,18 @@
 
     <section id="home" class="content active">
         <h2>Home</h2>
-        <p>Welcome to GathunguGeoConsult! Explore our GIS and Geomatics services, request a consultation, or learn more through our FAQ.</p>
+        <p>Welcome to GathunguGeoConsult! We provide professional GIS and Geomatics services to help you map, analyze, and manage your land and spatial data. Explore our services, request a consultation, or learn more through our FAQ.</p>
         <img src="https://via.placeholder.com/600x400?text=Surveyor+Using+Equipment" alt="Surveyor with equipment" class="survey-img">
+        <div class="mission-statement">
+            <h3>Our Mission</h3>
+            <p>To deliver accurate, reliable, and innovative geospatial solutions that empower our clients to make informed decisions about their land and resources.</p>
+        </div>
+        <div class="contact-info">
+            <h3>Contact Us</h3>
+            <p>Phone: +254 712 345 678</p>
+            <p>Email: info@gathungugeoconsult.co.ke</p>
+            <p>Address: Nairobi, Kenya</p>
+        </div>
     </section>
 
     <section id="services" class="services">
@@ -213,18 +212,78 @@
         <div id="serviceList">
             <div class="service-item">
                 <h3>Topographic Survey</h3>
-                <p>Accurate mapping of land features and elevation.</p>
+                <p>Accurate mapping of land features and elevation for planning and construction.</p>
                 <p class="price">Price Range: Ksh 5,000 - 10,000</p>
             </div>
             <div class="service-item">
                 <h3>Land Parcel Mapping</h3>
-                <p>Precise boundary delineation for property.</p>
+                <p>Precise boundary delineation for property ownership and development.</p>
                 <p class="price">Price Range: Ksh 8,000 - 15,000</p>
             </div>
             <div class="service-item">
                 <h3>GIS Data Analysis</h3>
-                <p>Spatial data processing and visualization.</p>
+                <p>Spatial data processing and visualization for informed decision-making.</p>
                 <p class="price">Price Range: Ksh 10,000 - 20,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Cadastral Surveying</h3>
+                <p>Establishing legal land boundaries for registration and titling.</p>
+                <p class="price">Price Range: Ksh 12,000 - 25,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Remote Sensing</h3>
+                <p>Collecting and analyzing data from satellite or aerial imagery.</p>
+                <p class="price">Price Range: Ksh 15,000 - 30,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Geospatial Database Development</h3>
+                <p>Creating and managing databases for spatial data storage and querying.</p>
+                <p class="price">Price Range: Ksh 20,000 - 40,000</p>
+            </div>
+            <div class="service-item">
+                <h3>3D Terrain Modeling</h3>
+                <p>Generating 3D models of terrain for visualization and analysis.</p>
+                <p class="price">Price Range: Ksh 18,000 - 35,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Hydrographic Surveying</h3>
+                <p>Mapping water bodies and underwater features for navigation or engineering.</p>
+                <p class="price">Price Range: Ksh 25,000 - 50,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Urban Planning Support</h3>
+                <p>Providing GIS data for city planning, zoning, and infrastructure design.</p>
+                <p class="price">Price Range: Ksh 15,000 - 35,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Environmental Mapping</h3>
+                <p>Assessing and mapping environmental features for conservation and impact studies.</p>
+                <p class="price">Price Range: Ksh 10,000 - 25,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Geodetic Surveying</h3>
+                <p>Precise measurements for earth’s shape and gravity field applications.</p>
+                <p class="price">Price Range: Ksh 20,000 - 45,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Cartographic Services</h3>
+                <p>Designing and producing custom maps for various purposes.</p>
+                <p class="price">Price Range: Ksh 8,000 - 20,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Land Use Planning</h3>
+                <p>Analyzing and mapping land use for sustainable development.</p>
+                <p class="price">Price Range: Ksh 12,000 - 30,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Construction Surveying</h3>
+                <p>Staking out and monitoring construction sites for accuracy.</p>
+                <p class="price">Price Range: Ksh 15,000 - 35,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Photogrammetry</h3>
+                <p>Deriving measurements and 3D models from photographs.</p>
+                <p class="price">Price Range: Ksh 20,000 - 40,000</p>
             </div>
         </div>
         <div id="error" class="error">Unable to load services. Please try again later.</div>
@@ -240,6 +299,18 @@
                 <option value="Topographic Survey">Topographic Survey</option>
                 <option value="Land Parcel Mapping">Land Parcel Mapping</option>
                 <option value="GIS Data Analysis">GIS Data Analysis</option>
+                <option value="Cadastral Surveying">Cadastral Surveying</option>
+                <option value="Remote Sensing">Remote Sensing</option>
+                <option value="Geospatial Database Development">Geospatial Database Development</option>
+                <option value="3D Terrain Modeling">3D Terrain Modeling</option>
+                <option value="Hydrographic Surveying">Hydrographic Surveying</option>
+                <option value="Urban Planning Support">Urban Planning Support</option>
+                <option value="Environmental Mapping">Environmental Mapping</option>
+                <option value="Geodetic Surveying">Geodetic Surveying</option>
+                <option value="Cartographic Services">Cartographic Services</option>
+                <option value="Land Use Planning">Land Use Planning</option>
+                <option value="Construction Surveying">Construction Surveying</option>
+                <option value="Photogrammetry">Photogrammetry</option>
                 <option value="Other">Other</option>
             </select>
             <label for="customService">If Other, specify:</label>
@@ -265,6 +336,46 @@
             <h3>Do I need an account to request a service?</h3>
             <p>No, simply fill out the request form with your service choice and phone number.</p>
         </div>
+        <div>
+            <h3>Why do I need a survey for my property?</h3>
+            <p>A survey clarifies your property boundaries, prevents disputes with neighbors, and is often required for legal documents or construction permits.</p>
+        </div>
+        <div>
+            <h3>What happens if my land boundaries are unclear?</h3>
+            <p>Unclear boundaries can lead to disputes or legal issues. Our cadastral or land parcel mapping services can define and register your boundaries accurately.</p>
+        </div>
+        <div>
+            <h3>Can you help me understand if my land is suitable for building?</h3>
+            <p>Yes, our topographic and environmental mapping services assess land features, elevation, and environmental factors to determine suitability for construction.</p>
+        </div>
+        <div>
+            <h3>How do I know which service I need?</h3>
+            <p>Contact us via the request form with your needs, and we’ll guide you to the right service, whether it’s for boundary mapping, construction, or planning.</p>
+        </div>
+        <div>
+            <h3>What equipment do you use for surveys?</h3>
+            <p>We use advanced tools like GPS, total stations, drones, and satellite imagery to ensure accurate and efficient results.</p>
+        </div>
+        <div>
+            <h3>Will I get a map or report after the service?</h3>
+            <p>Yes, depending on the service, you’ll receive detailed maps, reports, or digital data (e.g., GIS files or 3D models) tailored to your needs.</p>
+        </div>
+        <div>
+            <h3>Can you survey land in remote areas?</h3>
+            <p>Yes, our team is equipped to handle surveys in remote locations using remote sensing and portable surveying tools.</p>
+        </div>
+        <div>
+            <h3>How accurate are your surveys?</h3>
+            <p>Our surveys are highly accurate, using precise instruments and methods, with accuracy levels suitable for legal, construction, or planning purposes.</p>
+        </div>
+        <div>
+            <h3>Do I need to be present during the survey?</h3>
+            <p>Not always, but it’s helpful for you to clarify boundaries or specific needs. We’ll coordinate with you beforehand.</p>
+        </div>
+        <div>
+            <h3>Can your services help with land disputes?</h3>
+            <p>Yes, our cadastral and land parcel mapping services provide clear boundary definitions to help resolve or prevent disputes.</p>
+        </div>
     </section>
 
     <section id="adminSection">
@@ -281,7 +392,7 @@
 
     <section id="adminContent">
         <h2>Manage Services</h2>
-        <form onsubmit="addService(event)">
+        <form id="addServiceForm" onsubmit="addService(event)">
             <label for="serviceName">Service Name:</label>
             <input type="text" id="serviceName" name="serviceName" required>
             <label for="serviceDesc">Description:</label>
@@ -290,12 +401,122 @@
             <input type="text" id="priceRange" name="priceRange" required>
             <button type="submit">Add Service</button>
         </form>
+        <form id="editServiceForm" onsubmit="updateService(event)">
+            <input type="hidden" id="editServiceId" name="serviceId">
+            <label for="editServiceName">Service Name:</label>
+            <input type="text" id="editServiceName" name="serviceName" required>
+            <label for="editServiceDesc">Description:</label>
+            <textarea id="editServiceDesc" name="serviceDesc" required></textarea>
+            <label for="editPriceRange">Price Range (e.g., Ksh 5,000 - 10,000):</label>
+            <input type="text" id="editPriceRange" name="priceRange" required>
+            <button type="submit">Update Service</button>
+            <button type="button" onclick="cancelEdit()">Cancel</button>
+        </form>
         <div class="service-list" id="adminServiceList">
             <div class="service-item" data-id="1">
                 <h3>Topographic Survey</h3>
                 <p>Accurate mapping of land features and elevation.</p>
                 <p>Price Range: Ksh 5,000 - 10,000</p>
+                <button class="edit-button" onclick="editService(1, 'Topographic Survey', 'Accurate mapping of land features and elevation.', 'Ksh 5,000 - 10,000')">Edit</button>
                 <button onclick="deleteService(1)">Delete</button>
+            </div>
+            <div class="service-item" data-id="2">
+                <h3>Land Parcel Mapping</h3>
+                <p>Precise boundary delineation for property.</p>
+                <p>Price Range: Ksh 8,000 - 15,000</p>
+                <button class="edit-button" onclick="editService(2, 'Land Parcel Mapping', 'Precise boundary delineation for property.', 'Ksh 8,000 - 15,000')">Edit</button>
+                <button onclick="deleteService(2)">Delete</button>
+            </div>
+            <div class="service-item" data-id="3">
+                <h3>GIS Data Analysis</h3>
+                <p>Spatial data processing and visualization.</p>
+                <p>Price Range: Ksh 10,000 - 20,000</p>
+                <button class="edit-button" onclick="editService(3, 'GIS Data Analysis', 'Spatial data processing and visualization.', 'Ksh 10,000 - 20,000')">Edit</button>
+                <button onclick="deleteService(3)">Delete</button>
+            </div>
+            <div class="service-item" data-id="4">
+                <h3>Cadastral Surveying</h3>
+                <p>Establishing legal land boundaries for registration and titling.</p>
+                <p>Price Range: Ksh 12,000 - 25,000</p>
+                <button class="edit-button" onclick="editService(4, 'Cadastral Surveying', 'Establishing legal land boundaries for registration and titling.', 'Ksh 12,000 - 25,000')">Edit</button>
+                <button onclick="deleteService(4)">Delete</button>
+            </div>
+            <div class="service-item" data-id="5">
+                <h3>Remote Sensing</h3>
+                <p>Collecting and analyzing data from satellite or aerial imagery.</p>
+                <p>Price Range: Ksh 15,000 - 30,000</p>
+                <button class="edit-button" onclick="editService(5, 'Remote Sensing', 'Collecting and analyzing data from satellite or aerial imagery.', 'Ksh 15,000 - 30,000')">Edit</button>
+                <button onclick="deleteService(5)">Delete</button>
+            </div>
+            <div class="service-item" data-id="6">
+                <h3>Geospatial Database Development</h3>
+                <p>Creating and managing databases for spatial data storage and querying.</p>
+                <p>Price Range: Ksh 20,000 - 40,000</p>
+                <button class="edit-button" onclick="editService(6, 'Geospatial Database Development', 'Creating and managing databases for spatial data storage and querying.', 'Ksh 20,000 - 40,000')">Edit</button>
+                <button onclick="deleteService(6)">Delete</button>
+            </div>
+            <div class="service-item" data-id="7">
+                <h3>3D Terrain Modeling</h3>
+                <p>Generating 3D models of terrain for visualization and analysis.</p>
+                <p>Price Range: Ksh 18,000 - 35,000</p>
+                <button class="edit-button" onclick="editService(7, '3D Terrain Modeling', 'Generating 3D models of terrain for visualization and analysis.', 'Ksh 18,000 - 35,000')">Edit</button>
+                <button onclick="deleteService(7)">Delete</button>
+            </div>
+            <div class="service-item" data-id="8">
+                <h3>Hydrographic Surveying</h3>
+                <p>Mapping water bodies and underwater features for navigation or engineering.</p>
+                <p>Price Range: Ksh 25,000 - 50,000</p>
+                <button class="edit-button" onclick="editService(8, 'Hydrographic Surveying', 'Mapping water bodies and underwater features for navigation or engineering.', 'Ksh 25,000 - 50,000')">Edit</button>
+                <button onclick="deleteService(8)">Delete</button>
+            </div>
+            <div class="service-item" data-id="9">
+                <h3>Urban Planning Support</h3>
+                <p>Providing GIS data for city planning, zoning, and infrastructure design.</p>
+                <p>Price Range: Ksh 15,000 - 35,000</p>
+                <button class="edit-button" onclick="editService(9, 'Urban Planning Support', 'Providing GIS data for city planning, zoning, and infrastructure design.', 'Ksh 15,000 - 35,000')">Edit</button>
+                <button onclick="deleteService(9)">Delete</button>
+            </div>
+            <div class="service-item" data-id="10">
+                <h3>Environmental Mapping</h3>
+                <p>Assessing and mapping environmental features for conservation and impact studies.</p>
+                <p>Price Range: Ksh 10,000 - 25,000</p>
+                <button class="edit-button" onclick="editService(10, 'Environmental Mapping', 'Assessing and mapping environmental features for conservation and impact studies.', 'Ksh 10,000 - 25,000')">Edit</button>
+                <button onclick="deleteService(10)">Delete</button>
+            </div>
+            <div class="service-item" data-id="11">
+                <h3>Geodetic Surveying</h3>
+                <p>Precise measurements for earth’s shape and gravity field applications.</p>
+                <p>Price Range: Ksh 20,000 - 45,000</p>
+                <button class="edit-button" onclick="editService(11, 'Geodetic Surveying', 'Precise measurements for earth’s shape and gravity field applications.', 'Ksh 20,000 - 45,000')">Edit</button>
+                <button onclick="deleteService(11)">Delete</button>
+            </div>
+            <div class="service-item" data-id="12">
+                <h3>Cartographic Services</h3>
+                <p>Designing and producing custom maps for various purposes.</p>
+                <p>Price Range: Ksh 8,000 - 20,000</p>
+                <button class="edit-button" onclick="editService(12, 'Cartographic Services', 'Designing and producing custom maps for various purposes.', 'Ksh 8,000 - 20,000')">Edit</button>
+                <button onclick="deleteService(12)">Delete</button>
+            </div>
+            <div class="service-item" data-id="13">
+                <h3>Land Use Planning</h3>
+                <p>Analyzing and mapping land use for sustainable development.</p>
+                <p>Price Range: Ksh 12,000 - 30,000</p>
+                <button class="edit-button" onclick="editService(13, 'Land Use Planning', 'Analyzing and mapping land use for sustainable development.', 'Ksh 12,000 - 30,000')">Edit</button>
+                <button onclick="deleteService(13)">Delete</button>
+            </div>
+            <div class="service-item" data-id="14">
+                <h3>Construction Surveying</h3>
+                <p>Staking out and monitoring construction sites for accuracy.</p>
+                <p>Price Range: Ksh 15,000 - 35,000</p>
+                <button class="edit-button" onclick="editService(14, 'Construction Surveying', 'Staking out and monitoring construction sites for accuracy.', 'Ksh 15,000 - 35,000')">Edit</button>
+                <button onclick="deleteService(14)">Delete</button>
+            </div>
+            <div class="service-item" data-id="15">
+                <h3>Photogrammetry</h3>
+                <p>Deriving measurements and 3D models from photographs.</p>
+                <p>Price Range: Ksh 20,000 - 40,000</p>
+                <button class="edit-button" onclick="editService(15, 'Photogrammetry', 'Deriving measurements and 3D models from photographs.', 'Ksh 20,000 - 40,000')">Edit</button>
+                <button onclick="deleteService(15)">Delete</button>
             </div>
         </div>
         <h2>Customer Requests</h2>
@@ -307,6 +528,10 @@
             </div>
         </div>
     </section>
+
+    <footer>
+        <p>© 2025 GathunguGeoConsult. All rights reserved.</p>
+    </footer>
 
     <script>
         const validAccessKey = 'gathungu-secret-2025';
@@ -454,16 +679,68 @@
                     <h3>${sanitizeInput(name)}</h3>
                     <p>${sanitizeInput(desc)}</p>
                     <p>Price Range: ${sanitizeInput(price)}</p>
+                    <button class="edit-button" onclick="editService(${id}, '${sanitizeInput(name)}', '${sanitizeInput(desc)}', '${sanitizeInput(price)}')">Edit</button>
                     <button onclick="deleteService(${id})">Delete</button>
                 `;
                 serviceList.appendChild(newService);
-                document.querySelector('#adminContent form').reset();
+                document.getElementById('addServiceForm').reset();
                 console.log('New Service:', { id, name, desc, price });
             })
             .catch(error => {
                 alert('Error adding service. Please try again.');
                 console.error('Error:', error);
             });
+        }
+
+        function editService(id, name, desc, price) {
+            document.getElementById('editServiceId').value = id;
+            document.getElementById('editServiceName').value = name;
+            document.getElementById('editServiceDesc').value = desc;
+            document.getElementById('editPriceRange').value = price;
+            document.getElementById('editServiceForm').style.display = 'block';
+            document.getElementById('addServiceForm').style.display = 'none';
+        }
+
+        function updateService(event) {
+            event.preventDefault();
+            const id = document.getElementById('editServiceId').value;
+            const name = document.getElementById('editServiceName').value;
+            const desc = document.getElementById('editServiceDesc').value;
+            const price = document.getElementById('editPriceRange').value;
+            
+            fetch(`/api/admin/services/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': generateCsrfToken()
+                },
+                body: JSON.stringify({ name, description: desc, priceRange: price })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const service = document.querySelector(`.service-item[data-id="${id}"]`);
+                if (service) {
+                    service.innerHTML = `
+                        <h3>${sanitizeInput(name)}</h3>
+                        <p>${sanitizeInput(desc)}</p>
+                        <p>Price Range: ${sanitizeInput(price)}</p>
+                        <button class="edit-button" onclick="editService(${id}, '${sanitizeInput(name)}', '${sanitizeInput(desc)}', '${sanitizeInput(price)}')">Edit</button>
+                        <button onclick="deleteService(${id})">Delete</button>
+                    `;
+                }
+                cancelEdit();
+                console.log('Updated Service:', { id, name, desc, price });
+            })
+            .catch(error => {
+                alert('Error updating service. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function cancelEdit() {
+            document.getElementById('editServiceForm').style.display = 'none';
+            document.getElementById('addServiceForm').style.display = 'block';
+            document.getElementById('editServiceForm').reset();
         }
 
         function deleteService(id) {
