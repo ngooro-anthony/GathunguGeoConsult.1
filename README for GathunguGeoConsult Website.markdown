@@ -5,7 +5,7 @@ This project is a web application for GathunguGeoConsult, a GIS and Geomatics se
 
 ## Features
 ### Customer-Facing
-- **Service Listings**: Displays services like Topographic Survey, Land Parcel Mapping, and GIS Data Analysis with price ranges (e.g., Ksh 5,000 - 10,000).
+- **Service Listings**: Displays services like Topographic Survey, Land Parcel Mapping, and GIS Data Analysis with price ranges (e.g., Ksh 5,000 - 170,000)[Depends on service and location].
 - **Search Functionality**: Search bar to filter services by name or description.
 - **Service Request Form**: Users select a service and provide a mobile number; no login required.
 - **Basic Pricing Guide**: Shows price ranges for transparency.
