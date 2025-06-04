@@ -1,0 +1,524 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="GathunguGeoConsult - GIS and Geomatics services">
+    <meta name="robots" content="index, follow">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' https://via.placeholder.com; form-action 'self';">
+    <title>GathunguGeoConsult</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1em;
+            text-align: center;
+        }
+        nav {
+            background-color: #1976D2;
+            padding: 1em;
+        }
+        nav a {
+            color: white;
+            margin: 0 1em;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .search-bar {
+            padding: 1em;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .search-bar input {
+            padding: 0.5em;
+            width: 50%;
+            max-width: 500px;
+            border: 1px solid #ddd;
+        }
+        .content, .services, .request-form, .faq {
+            padding: 2em;
+            max-width: 800px;
+            margin: 0 auto;
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .service-item {
+            border: 1px solid #ddd;
+            padding: 1em;
+            margin: 1em 0;
+            background-color: #fff;
+        }
+        .service-item h3 {
+            color: #D32F2F;
+        }
+        .price {
+            color: #FBC02D;
+        }
+        .request-form form {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            max-width: 500px;
+        }
+        .request-form input, .request-form select {
+            padding: 0.5em;
+            border: 1px solid #ddd;
+        }
+        .request-form button {
+            background-color: #1976D2;
+            color: white;
+            padding: 0.5em;
+            border: none;
+            cursor: pointer;
+        }
+        .request-form button:hover {
+            background-color: #1565C0;
+        }
+        .faq h2, .request-form h2, .services h2, .content h2 {
+            color: #4CAF50;
+        }
+        .survey-img {
+            width: 100%;
+            max-width: 600px;
+            margin: 1em auto;
+            display: block;
+        }
+        #confirmation {
+            display: none;
+            color: #4CAF50;
+            text-align: center;
+            padding: 1em;
+        }
+        .error {
+            color: #D32F2F;
+            text-align: center;
+            padding: 1em;
+            display: none;
+        }
+        #adminSection, #adminContent {
+            display: none;
+            padding: 2em;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        #adminSection form, #adminContent form {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+        }
+        #adminSection input, #adminContent input, #adminContent textarea {
+            padding: 0.5em;
+            border: 1px solid #ddd;
+        }
+        #adminSection button, #adminContent button {
+            background-color: #1976D2;
+            color: white;
+            padding: 0.5em;
+            border: none;
+            cursor: pointer;
+        }
+        #adminSection button:hover, #adminContent button:hover {
+            background-color: #1565C0;
+        }
+        .service-item button, .request-item button {
+            background-color: #D32F2F;
+            margin-top: 0.5em;
+        }
+        .service-item button:hover, .request-item button:hover {
+            background-color: #C62828;
+        }
+        .service-list, .request-list {
+            margin: 1em 0;
+        }
+        .service-item, .request-item {
+            border: 1px solid #ddd;
+            padding: 1em;
+            margin: 0.5em 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>GathunguGeoConsult</h1>
+    </header>
+    <nav>
+        <a onclick="showSection('home')">Home</a>
+        <a onclick="showSection('services')">Our Services</a>
+        <a onclick="showSection('request')">Request a Service</a>
+        <a onclick="showSection('faq')">Frequently Asked Questions</a>
+    </nav>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search for services..." onkeyup="searchServices()">
+    </div>
+
+    <section id="home" class="content active">
+        <h2>Home</h2>
+        <p>Welcome to GathunguGeoConsult! Explore our GIS and Geomatics services, request a consultation, or learn more through our FAQ.</p>
+        <img src="https://via.placeholder.com/600x400?text=Surveyor+Using+Equipment" alt="Surveyor with equipment" class="survey-img">
+    </section>
+
+    <section id="services" class="services">
+        <h2>Our Services</h2>
+        <div id="serviceList">
+            <div class="service-item">
+                <h3>Topographic Survey</h3>
+                <p>Accurate mapping of land features and elevation.</p>
+                <p class="price">Price Range: Ksh 5,000 - 10,000</p>
+            </div>
+            <div class="service-item">
+                <h3>Land Parcel Mapping</h3>
+                <p>Precise boundary delineation for property.</p>
+                <p class="price">Price Range: Ksh 8,000 - 15,000</p>
+            </div>
+            <div class="service-item">
+                <h3>GIS Data Analysis</h3>
+                <p>Spatial data processing and visualization.</p>
+                <p class="price">Price Range: Ksh 10,000 - 20,000</p>
+            </div>
+        </div>
+        <div id="error" class="error">Unable to load services. Please try again later.</div>
+        <img src="https://via.placeholder.com/600x400?text=Surveyor+Using+Equipment" alt="Surveyor with equipment" class="survey-img">
+    </section>
+
+    <section id="request" class="request-form">
+        <h2>Request a Service</h2>
+        <form id="serviceRequestForm" onsubmit="submitRequest(event)">
+            <label for="serviceType">Service Needed:</label>
+            <select id="serviceType" name="serviceType" required>
+                <option value="">Select a service</option>
+                <option value="Topographic Survey">Topographic Survey</option>
+                <option value="Land Parcel Mapping">Land Parcel Mapping</option>
+                <option value="GIS Data Analysis">GIS Data Analysis</option>
+                <option value="Other">Other</option>
+            </select>
+            <label for="customService">If Other, specify:</label>
+            <input type="text" id="customService" name="customService">
+            <label for="phone">Mobile Phone Number:</label>
+            <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" placeholder="e.g., 0712345678" required>
+            <button type="submit">Submit Request</button>
+        </form>
+        <div id="confirmation">Thank you! Your request has been received.</div>
+    </section>
+
+    <section id="faq" class="faq">
+        <h2>Frequently Asked Questions</h2>
+        <div>
+            <h3>What is a topographic survey?</h3>
+            <p>A topographic survey maps the elevation and features of a piece of land, useful for construction and planning.</p>
+        </div>
+        <div>
+            <h3>How long does a service take?</h3>
+            <p>Duration varies by project size and complexity, typically 2-5 days. We’ll confirm after your request.</p>
+        </div>
+        <div>
+            <h3>Do I need an account to request a service?</h3>
+            <p>No, simply fill out the request form with your service choice and phone number.</p>
+        </div>
+    </section>
+
+    <section id="adminSection">
+        <h2>Admin Login</h2>
+        <form onsubmit="adminLogin(event)">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div id="accessError" class="error">Access restricted. Please contact the owner for the admin URL.</div>
+    </section>
+
+    <section id="adminContent">
+        <h2>Manage Services</h2>
+        <form onsubmit="addService(event)">
+            <label for="serviceName">Service Name:</label>
+            <input type="text" id="serviceName" name="serviceName" required>
+            <label for="serviceDesc">Description:</label>
+            <textarea id="serviceDesc" name="serviceDesc" required></textarea>
+            <label for="priceRange">Price Range (e.g., Ksh 5,000 - 10,000):</label>
+            <input type="text" id="priceRange" name="priceRange" required>
+            <button type="submit">Add Service</button>
+        </form>
+        <div class="service-list" id="adminServiceList">
+            <div class="service-item" data-id="1">
+                <h3>Topographic Survey</h3>
+                <p>Accurate mapping of land features and elevation.</p>
+                <p>Price Range: Ksh 5,000 - 10,000</p>
+                <button onclick="deleteService(1)">Delete</button>
+            </div>
+        </div>
+        <h2>Customer Requests</h2>
+        <div class="request-list" id="requestList">
+            <div class="request-item" data-id="1">
+                <p><strong>Service:</strong> Topographic Survey</p>
+                <p><strong>Phone:</strong> 0712345678</p>
+                <button onclick="deleteRequest(1)">Delete</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const validAccessKey = 'gathungu-secret-2025';
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const accessKey = params.get('key');
+            if (accessKey === validAccessKey) {
+                document.getElementById('adminSection').style.display = 'block';
+            } else {
+                document.getElementById('adminSection').style.display = 'none';
+                document.getElementById('accessError').style.display = 'block';
+            }
+            showSection('home');
+        }
+
+        function showSection(sectionId) {
+            const sections = ['home', 'services', 'request', 'faq', 'adminSection', 'adminContent'];
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    section.classList.remove('active');
+                    if (id === sectionId) {
+                        section.classList.add('active');
+                    }
+                }
+            });
+            if (sectionId === 'services') {
+                const params = new URLSearchParams(window.location.search);
+                const search = params.get('search');
+                if (search) {
+                    document.getElementById('searchInput').value = search;
+                    searchServices();
+                }
+                const serviceList = document.getElementById('serviceList').children;
+                if (serviceList.length === 0) {
+                    document.getElementById('error').style.display = 'block';
+                } else {
+                    document.getElementById('error').style.display = 'none';
+                }
+            }
+        }
+
+        function searchServices() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const services = document.getElementById('serviceList').getElementsByClassName('service-item');
+            let hasMatch = false;
+            for (let i = 0; i < services.length; i++) {
+                const title = services[i].getElementsByTagName('h3')[0].textContent.toLowerCase();
+                const desc = services[i].getElementsByTagName('p')[0].textContent.toLowerCase();
+                if (title.includes(input) || desc.includes(input)) {
+                    services[i].style.display = 'block';
+                    hasMatch = true;
+                } else {
+                    services[i].style.display = 'none';
+                }
+            }
+            document.getElementById('error').style.display = hasMatch ? 'none' : 'block';
+        }
+
+        function submitRequest(event) {
+            event.preventDefault();
+            const service = document.getElementById('serviceType').value;
+            const customService = document.getElementById('customService').value;
+            const phone = document.getElementById('phone').value;
+            
+            if (!service || !phone.match(/^[0-9]{10}$/)) {
+                alert('Please select a service and enter a valid 10-digit phone number.');
+                return;
+            }
+            
+            const requestData = { service: service === 'Other' ? customService : service, phone };
+            console.log('Request:', requestData);
+            fetch('/api/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': generateCsrfToken()
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('confirmation').style.display = 'block';
+                document.getElementById('serviceRequestForm').reset();
+                setTimeout(() => {
+                    document.getElementById('confirmation').style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                alert('Error submitting request. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function adminLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            fetch('/api/admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': generateCsrfToken()
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Login successful') {
+                    document.getElementById('adminSection').style.display = 'none';
+                    document.getElementById('adminContent').style.display = 'block';
+                } else {
+                    alert('Invalid username or password');
+                }
+            })
+            .catch(error => {
+                alert('Error during login. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function addService(event) {
+            event.preventDefault();
+            const name = document.getElementById('serviceName').value;
+            const desc = document.getElementById('serviceDesc').value;
+            const price = document.getElementById('priceRange').value;
+            const id = Date.now();
+            
+            fetch('/api/admin/services', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': generateCsrfToken()
+                },
+                body: JSON.stringify({ name, description: desc, priceRange: price })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const serviceList = document.getElementById('adminServiceList');
+                const newService = document.createElement('div');
+                newService.className = 'service-item';
+                newService.dataset.id = id;
+                newService.innerHTML = `
+                    <h3>${sanitizeInput(name)}</h3>
+                    <p>${sanitizeInput(desc)}</p>
+                    <p>Price Range: ${sanitizeInput(price)}</p>
+                    <button onclick="deleteService(${id})">Delete</button>
+                `;
+                serviceList.appendChild(newService);
+                document.querySelector('#adminContent form').reset();
+                console.log('New Service:', { id, name, desc, price });
+            })
+            .catch(error => {
+                alert('Error adding service. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function deleteService(id) {
+            fetch(`/api/admin/services/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': generateCsrfToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const service = document.querySelector(`.service-item[data-id="${id}"]`);
+                if (service) {
+                    service.remove();
+                    console.log('Deleted Service ID:', id);
+                }
+            })
+            .catch(error => {
+                alert('Error deleting service. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function deleteRequest(id) {
+            fetch(`/api/admin/requests/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': generateCsrfToken()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const request = document.querySelector(`.request-item[data-id="${id}"]`);
+                if (request) {
+                    request.remove();
+                    console.log('Deleted Request ID:', id);
+                }
+            })
+            .catch(error => {
+                alert('Error deleting request. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function sanitizeInput(input) {
+            const div = document.createElement('div');
+            div.textContent = input;
+            return div.innerHTML;
+        }
+
+        function generateCsrfToken() {
+            return 'csrf-token-' + Math.random().toString(36).substr(2, 9);
+        }
+    </script>
+</body>
+</html>
